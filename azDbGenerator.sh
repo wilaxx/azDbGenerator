@@ -1,9 +1,17 @@
 #!/bin/bash
 
-REGEXFILE="$DEVTOOLS/regexfile";
+#Define variables
 LYRICS_DIR="$HOME/azlyrics"
 
 mkdir -p $LYRICS_DIR;
+
+#Go on every page from a to z on http://www.azlyrics.com
+# https://www.azlyrics.com/a.html
+# https://www.azlyrics.com/b.html
+
+# On every page, the artist name is between "a" HTML tags. We can retrieve it to have the artist name.
+# Moreover, we can retrieve the value of the href attribute to have th URL to search for 
+# 
 
 startup() {
   query="$i";
