@@ -2,59 +2,66 @@
 
 #Define variables
 LYRICS_DIR="$HOME/azlyrics"
-
 mkdir -p $LYRICS_DIR;
 
-#Go on every page from a to z on http://www.azlyrics.com
-# https://www.azlyrics.com/a.html
-# https://www.azlyrics.com/b.html
-
-# On every page, the artist name is between "a" HTML tags. We can retrieve it to have the artist name.
-# Moreover, we can retrieve the value of the href attribute to have th URL to search for 
-# 
-
-# Create alphabet array and adding "19" at the end which is the page where artists name begin with a number
-# echo \'{a..z}\'
-
 # alphabet=('a' 'b' 'c' 'd' 'e' 'f' 'g' 'h' 'i' 'j' 'k' 'l' 'm' 'n' 'o' 'p' 'q' 'r' 's' 't' 'u' 'v' 'w' 'x' 'y' 'z' '19');
-
 alphabet=('a' 'b');
 
+startup() {
+  tempname=`basename $0 .sh`;
+  tempdir="/tmp/$tempname";
+  if [[ ! -e $tempdir ]]; then
+    mkdir -p $tempdir;
+  fi
+};
+
 curl_alphabet() {
-  tempfile=/tmp/$i.html
+  tempfile=$tempdir/$i.html;
+  touch $tempfile;
+  url="https://www.azlyrics.com/$i.html";
   user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36';
-  curl -A "$user_agent" --url "http://www.azlyrics.com/$i.html" > "$tempfile";
+
+  curl -A "$user_agent" --url "$url" > $tempfile;
   if [[  "$?" == "0" ]]; then
-  cat $tempfile;
     return 0;
   else
     echo "erreur sur le curl";
     return 1;
   fi   
 }
+
+filter_artits() {
+  for j in `ls`; do
+ while read -r line; do     
+    echo $line | grep -e '^<' | grep -e 'class="album"' -e 'class="listalbum-item"><a' >> "$j"
+  done <$j
+done
+}
+
+
+#   while read -r line; do     
+#     echo $line | grep -e '^<' | grep -e 'class="album"' -e 'class="listalbum-item"><a' >> "$LYRICS_DIR/$queryword.txt"
+#   done <$tempfile
+
+# }
 # tags to retrieve
 # class="col-sm-6 text-center artist-col"
 
-for i in "${alphabet[@]}" do
+
+
+
+
+# Launching actions 
+
+startup;
+
+for i in "${alphabet[@]}"; do
   curl_alphabet;
-
-done;
-
+done
 
 
-startup() {
-  query="$i";
-  queryword=`echo "${i,,}" | sed -r 's/\s+//g'`;
-  tempname=`basename $0 .sh`;
-  timestamp=`date +'%d%m%Y-%H%M%S'`;
-  tempdir="/tmp/$tempname";
-  tempfile="$tempdir/$queryword-$timestamp.html"
-  lyricsfile=""
-  if [[ ! -e $tempdir ]]; then
-    mkdir -p $tempdir;
-  fi
-  touch $tempfile;
-};
+
+
 
 cleanup() {
   echo "Suppression du fichier : $tempfile";
@@ -95,11 +102,7 @@ curl_url() {
   fi   
 }
 
-filterTags() {
-  while read -r line; do     
-    echo $line | grep -e '^<' | grep -e 'class="album"' -e 'class="listalbum-item"><a' >> "$LYRICS_DIR/$queryword.txt"
-  done <$tempfile
-}
+
 
 removeHTML() {
   sed -i 's/<[^>]*>//g' "$LYRICS_DIR/$queryword.txt"
