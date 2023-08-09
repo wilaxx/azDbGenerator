@@ -13,6 +13,35 @@ mkdir -p $LYRICS_DIR;
 # Moreover, we can retrieve the value of the href attribute to have th URL to search for 
 # 
 
+# Create alphabet array and adding "19" at the end which is the page where artists name begin with a number
+# echo \'{a..z}\'
+
+# alphabet=('a' 'b' 'c' 'd' 'e' 'f' 'g' 'h' 'i' 'j' 'k' 'l' 'm' 'n' 'o' 'p' 'q' 'r' 's' 't' 'u' 'v' 'w' 'x' 'y' 'z' '19');
+
+alphabet=('a' 'b');
+
+curl_alphabet() {
+  tempfile=/tmp/$i.html
+  user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36';
+  curl -A "$user_agent" --url "http://www.azlyrics.com/$i.html" > "$tempfile";
+  if [[  "$?" == "0" ]]; then
+  cat $tempfile;
+    return 0;
+  else
+    echo "erreur sur le curl";
+    return 1;
+  fi   
+}
+# tags to retrieve
+# class="col-sm-6 text-center artist-col"
+
+for i in "${alphabet[@]}" do
+  curl_alphabet;
+
+done;
+
+
+
 startup() {
   query="$i";
   queryword=`echo "${i,,}" | sed -r 's/\s+//g'`;
