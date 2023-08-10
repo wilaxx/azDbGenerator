@@ -1,13 +1,10 @@
 #!/bin/bash
 
-#Define variables
-LYRICS_DIR="$HOME/azlyrics"
-mkdir -p $LYRICS_DIR;
-
-# alphabet=('a' 'b' 'c' 'd' 'e' 'f' 'g' 'h' 'i' 'j' 'k' 'l' 'm' 'n' 'o' 'p' 'q' 'r' 's' 't' 'u' 'v' 'w' 'x' 'y' 'z' '19');
-alphabet=('a' 'b');
+alphabet=('e' 'k');
 
 startup() {
+  js_obj_file="$HOME/db_songs_azlyrics.js";
+  touch $js_obj_file;
   tempname=`basename $0 .sh`;
   tempdir="/tmp/$tempname";
   if [[ ! -e $tempdir ]]; then
@@ -21,7 +18,7 @@ curl_alphabet() {
   url="https://www.azlyrics.com/$i.html";
   user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36';
 
-  curl -A "$user_agent" --url "$url" > $tempfile;
+  curl -A "$user_agent" --url "$url" > ${tempfile};
   if [[  "$?" == "0" ]]; then
     return 0;
   else
@@ -29,70 +26,31 @@ curl_alphabet() {
     return 1;
   fi   
 }
-
-filter_artits() {
-  for j in `ls`; do
- while read -r line; do     
-    echo $line | grep -e '^<' | grep -e 'class="album"' -e 'class="listalbum-item"><a' >> "$j"
-  done <$j
-done
+keepArtistsTags() {
+    while read -r line; do     
+      echo $line | grep -e '<a href="' | grep -e '</a>' | grep -e '<br>' >> ${tempdir}/${i}_artists;
+    done <${tempfile}
+}
+keepArtistInfos() {
+    urltemp="";
+    artist="";
+  while read -r lino; do
+    urlpart=`echo $lino | grep -o -P '(?<=.[^\"])+\".*\"(?=.)'`;
+    echo $lino > ${tempdir}/tempart;
+    urltemp=https://www.azlyrics.com/${urlpart};
+    artist=`sed -e 's/<[^>]*>//g' ${tempdir}/tempart`;
+    curl_artist_url;
+    filter_tags;
+    remove_html;
+    filter_albums;
+    sorting_songs;
+  done <"${tempdir}/${i}_artists"
 }
 
 
-#   while read -r line; do     
-#     echo $line | grep -e '^<' | grep -e 'class="album"' -e 'class="listalbum-item"><a' >> "$LYRICS_DIR/$queryword.txt"
-#   done <$tempfile
-
-# }
-# tags to retrieve
-# class="col-sm-6 text-center artist-col"
-
-
-
-
-
-# Launching actions 
-
-startup;
-
-for i in "${alphabet[@]}"; do
-  curl_alphabet;
-done
-
-
-
-
-
-cleanup() {
-  echo "Suppression du fichier : $tempfile";
-  sleep 3;
-  rm -rf $tempfile;
-  return 0;
-}
-
-create_url() {
-  query="$i";
-  echo "query vaut $query";
-  queryletter="${queryword:0:1}";
-
-  if [[  "$queryletter" =~ [0-9] ]]; then
-    url="https://www.azlyrics.com/19/$queryword.html";
-    echo "url vaut : $url";
-    return 0;
-  elif [[ "$queryletter" =~ [a-z] ]]; then
-    echo "La premiere lettre est une lettre"
-    url="https://www.azlyrics.com/$queryletter/$queryword.html";
-    echo "url vaut : $url";
-    return 0;
-  else
-    echo "Artist name must start with letter or number"
-    return 1;
-  fi   
-};
-
-curl_url() {
+curl_artist_url() {
   user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36';
-  curl -A "$user_agent" --url "$url" > $tempfile;
+  curl -A "$user_agent" --url "https://www.azlyrics.com/$urltemp" > ${tempdir}/url.tmp;
   if [[  "$?" == "0" ]]; then
     return 0;
   else
@@ -101,57 +59,58 @@ curl_url() {
     return 1;
   fi   
 }
-
-
-
-removeHTML() {
-  sed -i 's/<[^>]*>//g' "$LYRICS_DIR/$queryword.txt"
+filter_tags() {
+  while read -r line; do     
+    echo $line | grep -e '^<' | grep -e 'class="album"' -e 'class="listalbum-item"><a' >> ${tempdir}/lyrics.html;
+  done <"${tempdir}/url.tmp"
 }
-
-sortingSongs() {
+remove_html() {
+  sed -i 's/<[^>]*>//g' ${tempdir}/lyrics.html
+}
+filter_albums() {
+  while read -r line; do     
+    echo $line | grep -e '^<' | grep -e 'class="album"' -e 'class="listalbum-item"><a' >> ${tempdir}/lyrics.tmp
+  done <"${tempdir}/lyrics.html"
+}
+sorting_songs() {
   c_album="";
   while read -r line; do
   
-  echo "$line" | grep -o -P '(?<=.[^\"])+\".*\"(?=.)' > /tmp/testaz;
+  echo "$line" | grep -o -P '(?<=.[^\"])+\".*\"(?=.)' > ${tempdir}/album.tmp;
     if [[ "$?" == "0" ]]; then
-      c_album="$(cat /tmp/testaz)";
+      c_album=`cat $tempdir/album.tmp`;
     else
       echo "{
       name: \"$line\",
       album: "$c_album",
-      artist: \"Keny Arkana\"
+      artist: "$artist"
     },
-    " >> $queryword.txt;
+    " >> ${js_obj_file};
   fi
-    done <"$LYRICS_DIR/$queryword.txt"
+    done <"${tempdir}/lyrics.tmp"
 };
 
+####### Launching actions #######
+startup;
+for i in "${alphabet[@]}"; do
+  curl_alphabet;
+  if [[ "$?" == "0" ]]; then
+    echo "
+    
+    Le curl_alphabet s est bien passe
+    
+    ";
 
-generate_lyrics() {
-  startup;
-  create_url "$i";
-  if [[ "$?" == "0" ]];then
-      curl_url "$i";
-    else
-    echo "erreur sur le curl";
-    cleanup;
-    return 1;
-  fi   
-  filterTags;
-  removeHTML;
-  sortingSongs;
-}
+  fi
+  keepArtistsTags;
+  if [[ "$?" == "0" ]]; then
+    echo "
+    
+    Le keepArtistsTags s est bien passe
+    
+    ";
 
-#Lancement du programme
-for i in "$@"
-  do
-    generate_lyrics "$i";
-  done
+  fi
+  keepArtistInfos;
+done
 
-exit 0;
-
-# $1 parameter to lower case then removing whitespaces
-# echo "${1,,}" | sed -r 's/\s+//g'
-# or
-# removing whitessapces in $1 parameter then to lower case
-# echo $1 | sed -r 's/\s+//g' | tr '[:upper:]' '[:lower:]'
