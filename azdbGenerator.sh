@@ -1,6 +1,6 @@
 #!/bin/bash
 
-alphabet=('k');
+alphabet=('e');
 
 startup() {
   js_obj_file="$HOME/db_songs_azlyrics.js";
@@ -32,12 +32,13 @@ keepArtistsTags() {
     done <${tempfile}
 }
 keepArtistInfos() {
-    url_temp="";
-    artist="";
+    
   while read -r lino; do
+    artist="";
+    url_temp="";
     url_part=`echo $lino | grep -o -P '(?<=\").*(?=\")'`;
-    echo "new url_part vaut : $url_part";
-    echo $lino > "$tempdir/tempart"
+    echo "new2 url_part vaut : $url_part";
+    echo $lino > "$tempdir/tempart";
     echo "lino vaut : $lino";
     url_temp="https://www.azlyrics.com/$url_part";
     echo "url_temp vaut : $url_temp";
@@ -54,7 +55,9 @@ keepArtistInfos() {
 
 curl_artist_url() {
   user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36';
-  curl -A "$user_agent" --url "https://www.azlyrics.com/$url_temp" > "$tempdir/url.tmp";
+  curl -A "$user_agent" --url "$url_temp" > ${tempdir}/url.tmp;
+  echo "tempdir/url.tmp vaut : ";
+  cat $tempdir/url.tmp;
   if [[ "$?" == 0 ]]; then
     return 0;
   else
@@ -95,6 +98,8 @@ sorting_songs() {
 };
 
 ####### Launching actions #######
+
+
 startup;
 for i in "${alphabet[@]}"; do
   curl_alphabet;
