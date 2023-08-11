@@ -43,7 +43,6 @@ keepArtistInfos() {
     curl_artist_url;
     filter_tags;
     remove_html;
-    filter_albums;
     sorting_songs;
   done <"${tempdir}/${i}_artists"
 }
@@ -52,8 +51,6 @@ keepArtistInfos() {
 curl_artist_url() {
   user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36';
   curl -A "$user_agent" --url "$url_temp" > ${tempdir}/url.tmp;
-  echo "tempdir/url.tmp vaut : ";
-  cat $tempdir/url.tmp;
   if [[ "$?" == 0 ]]; then
     return 0;
   else
@@ -70,11 +67,6 @@ filter_tags() {
 remove_html() {
   sed -i 's/<[^>]*>//g' ${tempdir}/lyrics.html
 }
-filter_albums() {
-  while read -r line; do     
-    echo $line | grep -e '^<' | grep -e 'class="album"' -e 'class="listalbum-item"><a' >> ${tempdir}/lyrics.tmp
-  done <"${tempdir}/lyrics.html"
-}
 sorting_songs() {
   c_album="";
   while read -r line; do
@@ -90,8 +82,8 @@ sorting_songs() {
     },
     " >> ${js_obj_file};
   fi
-    done <"${tempdir}/lyrics.tmp"
-};
+    done <"${tempdir}/lyrics.html"
+}
 
 ####### Launching actions #######
 
