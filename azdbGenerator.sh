@@ -44,8 +44,10 @@ keepArtistInfos() {
     filter_tags;
     remove_html;
     sorting_songs;
-    randy=$(($RANDOM%120));
+    randy=$(($RANDOM%99));
     sleep $randy;
+    echo " ================  $randy secondes  ==============================
+    "
   done <"${tempdir}/${i}_artists"
 }
 
