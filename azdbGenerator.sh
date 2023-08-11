@@ -1,6 +1,6 @@
 #!/bin/bash
 
-alphabet=('e');
+alphabet=('a' 'b' 'c' 'd' 'e' 'f' 'g' 'h' 'i' 'j' 'k' 'l' 'm' 'n' 'o' 'p' 'q' 'r' 's' 't' 'u' 'v' 'w' 'x' 'y' 'z' '19');
 
 startup() {
   js_obj_file="$HOME/db_songs_azlyrics.js";
