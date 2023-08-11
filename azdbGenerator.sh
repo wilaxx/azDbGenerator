@@ -37,18 +37,14 @@ keepArtistInfos() {
     artist="";
     url_temp="";
     url_part=`echo $lino | grep -o -P '(?<=\").*(?=\")'`;
-    echo "new2 url_part vaut : $url_part";
     echo $lino > "$tempdir/tempart";
-    echo "lino vaut : $lino";
     url_temp="https://www.azlyrics.com/$url_part";
-    echo "url_temp vaut : $url_temp";
     artist=`sed -e 's/<[^>]*>//g' $tempdir/tempart`;
-    echo "artist vaut : $artist";
     curl_artist_url;
-    # filter_tags;
-    # remove_html;
-    # filter_albums;
-    # sorting_songs;
+    filter_tags;
+    remove_html;
+    filter_albums;
+    sorting_songs;
   done <"${tempdir}/${i}_artists"
 }
 
@@ -104,14 +100,6 @@ startup;
 for i in "${alphabet[@]}"; do
   curl_alphabet;
   keepArtistsTags;
-  if [[ "$?" == "0" ]]; then
-    echo "
-    
-    Le keepArtistsTags s est bien passe
-    
-    ";
-
-  fi
   keepArtistInfos;
 done
 
