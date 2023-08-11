@@ -44,7 +44,7 @@ keepArtistInfos() {
     filter_tags;
     remove_html;
     sorting_songs;
-    randy=$(($RANDOM%91));
+    randy=$(($RANDOM%25));
     echo " ================  $randy secondes  ==============================
     "
     sleep $randy;
