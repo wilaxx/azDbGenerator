@@ -1,6 +1,6 @@
 #!/bin/bash
 
-alphabet=('e' 'k');
+alphabet=('k');
 
 startup() {
   js_obj_file="$HOME/db_songs_azlyrics.js";
@@ -32,30 +32,34 @@ keepArtistsTags() {
     done <${tempfile}
 }
 keepArtistInfos() {
-    urltemp="";
+    url_temp="";
     artist="";
   while read -r lino; do
-    urlpart=`echo $lino | grep -o -P '(?<=.[^\"])+\".*\"(?=.)'`;
-    echo $lino > ${tempdir}/tempart;
-    urltemp=https://www.azlyrics.com/${urlpart};
-    artist=`sed -e 's/<[^>]*>//g' ${tempdir}/tempart`;
+    url_part=`echo $lino | grep -o -P '(?<=.[^\"])+\".*\"(?=.)'`;
+    echo "url_part vaut : $url_part";
+    echo $lino > "$tempdir/tempart"
+    echo "lino vaut : $lino";
+    url_temp="https://www.azlyrics.com/${url_part}";
+    echo "url_temp vaut : $url_temp";
+    artist=`sed -e 's/<[^>]*>//g' $tempdir/tempart`;
+    echo "artist vaut : $artist";
     curl_artist_url;
-    filter_tags;
-    remove_html;
-    filter_albums;
-    sorting_songs;
+    # filter_tags;
+    # remove_html;
+    # filter_albums;
+    # sorting_songs;
   done <"${tempdir}/${i}_artists"
 }
 
 
 curl_artist_url() {
   user_agent='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36';
-  curl -A "$user_agent" --url "https://www.azlyrics.com/$urltemp" > ${tempdir}/url.tmp;
-  if [[  "$?" == "0" ]]; then
+  curl -A "$user_agent" --url "https://www.azlyrics.com/$url_temp" > "$tempdir/url.tmp";
+  if [[ "$?" == 0 ]]; then
     return 0;
   else
     echo "erreur sur le curl";
-    cleanup;
+    # cleanup;
     return 1;
   fi   
 }
@@ -94,14 +98,6 @@ sorting_songs() {
 startup;
 for i in "${alphabet[@]}"; do
   curl_alphabet;
-  if [[ "$?" == "0" ]]; then
-    echo "
-    
-    Le curl_alphabet s est bien passe
-    
-    ";
-
-  fi
   keepArtistsTags;
   if [[ "$?" == "0" ]]; then
     echo "
