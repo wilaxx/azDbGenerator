@@ -35,11 +35,11 @@ keepArtistInfos() {
     url_temp="";
     artist="";
   while read -r lino; do
-    url_part=`echo $lino | grep -o -P '(?<=.[^\"])+\".*\"(?=.)'`;
-    echo "url_part vaut : $url_part";
+    url_part=`echo $lino | grep -o -P '(?<=\").*(?=\")'`;
+    echo "new url_part vaut : $url_part";
     echo $lino > "$tempdir/tempart"
     echo "lino vaut : $lino";
-    url_temp="https://www.azlyrics.com/${url_part}";
+    url_temp="https://www.azlyrics.com/$url_part";
     echo "url_temp vaut : $url_temp";
     artist=`sed -e 's/<[^>]*>//g' $tempdir/tempart`;
     echo "artist vaut : $artist";
