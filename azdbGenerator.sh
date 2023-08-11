@@ -44,6 +44,8 @@ keepArtistInfos() {
     filter_tags;
     remove_html;
     sorting_songs;
+    randy=$(($RANDOM%120));
+    sleep $randy;
   done <"${tempdir}/${i}_artists"
 }
 
